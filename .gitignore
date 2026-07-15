@@ -1,0 +1,14 @@
+config/.env
+.env
+data/
+venv/
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+logs/
+*.log
+.DS_Store
+*.csv
+*.pkl
+*.db
+*.sqlite3
