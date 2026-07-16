@@ -102,12 +102,12 @@ def open_bracket_position(
     if direction == "long" and take_profit_price < round(limit_price + 0.01, 2):
         raise ValueError(
             f"{ticker}: target {take_profit_price} no longer clears buffered entry "
-            f"{limit_price} + \/bin/bash.01 -- price ran past the target before submission"
+            f"{limit_price} + 0.01 -- price ran past the target before submission"
         )
     if direction == "short" and take_profit_price > round(limit_price - 0.01, 2):
         raise ValueError(
             f"{ticker}: target {take_profit_price} no longer clears buffered entry "
-            f"{limit_price} - \/bin/bash.01 -- price ran past the target before submission"
+            f"{limit_price} - 0.01 -- price ran past the target before submission"
         )
 
     order_request = LimitOrderRequest(
