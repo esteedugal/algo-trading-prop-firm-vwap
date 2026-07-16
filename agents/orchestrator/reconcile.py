@@ -60,15 +60,25 @@ def _client() -> TradingClient:
 
 def poll_for_fill(order_id: str, trading_client: Optional[TradingClient] = None, timeout_seconds: int = 45, interval_seconds: int = 3):
     """
-    Bounded poll for a bracket ENTRY order to reach a terminal status. A
-    marketable-limit entry on a name the screener already confirmed has
-    abnormal volume, during market hours, should resolve almost
-    immediately — this is a safety bound within the 1-minute tick budget,
-    not the expected common case.
+    Bounded poll for an order to reach a terminal status. A marketable-
+    limit entry on a name the screener already confirmed has abnormal
+    volume, during market hours, should resolve almost immediately --
+    this is a safety bound within the 1-minute tick budget, not the
+    expected common case.
+
+    PARTIALLY_FILLED is deliberately NOT treated as terminal -- found live
+    2026-07-15 (VWAP sibling) closing out a full-size EOD flatten: a
+    market order momentarily read PARTIALLY_FILLED at the instant of a
+    poll, the caller treated that as "still resting, leave it alone,"
+    and the order went on to reach FILLED a few seconds later with
+    nothing left watching it -- the DB never learned the position had
+    actually closed. Keep polling through PARTIALLY_FILLED until it
+    resolves to FILLED or a genuine stop (CANCELED/REJECTED/EXPIRED/
+    DONE_FOR_DAY) or the timeout budget runs out.
     """
     trading_client = trading_client or _client()
     terminal = {
-        OrderStatus.FILLED, OrderStatus.PARTIALLY_FILLED, OrderStatus.CANCELED,
+        OrderStatus.FILLED, OrderStatus.CANCELED,
         OrderStatus.REJECTED, OrderStatus.EXPIRED, OrderStatus.DONE_FOR_DAY,
     }
     elapsed = 0

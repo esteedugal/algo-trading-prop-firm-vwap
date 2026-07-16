@@ -88,6 +88,28 @@ def open_bracket_position(
     else:
         raise ValueError(f"direction must be 'long' or 'short', got {direction!r}")
 
+    # Signal-time target validation checks target_price against the raw
+    # entry_trigger, not this marketable-limit price -- if price keeps
+    # running between signal detection and submission (routine on a
+    # breakout/resumption setup), the buffered limit_price can end up at
+    # or past a target that looked valid when the setup was frozen. Alpaca
+    # rejects that outright ("take_profit.limit_price must be >= base_price
+    # + 0.01" / "<= base_price - 0.01") -- found live 2026-07-15, ~1/3 of
+    # one day's setups on this project alone. Re-validate against the
+    # ACTUAL price about to be submitted and skip cleanly rather than
+    # burning a submission on a target price has already run past.
+    take_profit_price = round(target_price, 2)
+    if direction == "long" and take_profit_price < round(limit_price + 0.01, 2):
+        raise ValueError(
+            f"{ticker}: target {take_profit_price} no longer clears buffered entry "
+            f"{limit_price} + \/bin/bash.01 -- price ran past the target before submission"
+        )
+    if direction == "short" and take_profit_price > round(limit_price - 0.01, 2):
+        raise ValueError(
+            f"{ticker}: target {take_profit_price} no longer clears buffered entry "
+            f"{limit_price} - \/bin/bash.01 -- price ran past the target before submission"
+        )
+
     order_request = LimitOrderRequest(
         symbol=ticker,
         qty=qty,
@@ -96,7 +118,7 @@ def open_bracket_position(
         time_in_force=TimeInForce.DAY,
         limit_price=limit_price,
         order_class=OrderClass.BRACKET,
-        take_profit=TakeProfitRequest(limit_price=round(target_price, 2)),
+        take_profit=TakeProfitRequest(limit_price=take_profit_price),
         stop_loss=StopLossRequest(stop_price=round(stop_price, 2)),
         client_order_id=client_order_id,
     )
