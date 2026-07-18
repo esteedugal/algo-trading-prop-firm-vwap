@@ -76,7 +76,16 @@ SWING_LOOKBACK_BARS = 20                 # STOP reference only -- bounded furthe
 # discarding a setup that still has a legitimate fallback available.
 FIXED_R_MULTIPLE = 2.0                   # fallback target when the day's prior high/low is too close
 MIN_TARGET_RISK_REWARD = 1.5             # day-extreme target must clear this x the stop distance, else fallback
-STOP_BUFFER_PCT = 0.0005                 # push stop just beyond the level, not exactly on it
+STOP_BUFFER_PCT = 0.0030                 # push stop meaningfully beyond the level, not just past it --
+                                          # widened from 0.0005 on 2026-07-17 after replaying all 52
+                                          # stopped-out trades from the first 3 trading days against real
+                                          # 1-min bars (position-sized to hold $ risk per trade constant):
+                                          # 3.8% win rate / -$1,757 at 0.05% vs 21.2% win rate / -$547 at
+                                          # 0.30%. Deliberately NOT pushed wider than this -- P&L plateaus
+                                          # from here through 1.5%, and the apparent further improvement
+                                          # is mostly the stop increasingly never triggering at all (EOD
+                                          # flatten share rises from 11/52 at 0.30% to 30/52 at 1.50%),
+                                          # not a better-calibrated risk control.
 
 # Operational cap only (NOT a risk control -- pre_trade_check's own
 # budget/volume/buying-power gating already bounds real exposure) --

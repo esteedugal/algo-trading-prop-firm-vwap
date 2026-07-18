@@ -202,7 +202,7 @@ def compute_stop_target(
     swing_stop_price: float,
     day_extreme_price: float,
     direction: Direction,
-    stop_buffer_pct: float = 0.0005,
+    stop_buffer_pct: float = 0.0030,
     fixed_r_multiple: float = 2.0,
     min_target_risk_reward: float = 1.5,
 ) -> dict:
